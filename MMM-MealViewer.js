@@ -25,7 +25,7 @@ Module.register("MMM-MealViewer", {
     updateInterval: 15 * 60 * 1000,
     showNextDayHour: 12,
     showMeal: "",
-    hideTypes: [],
+    showTypes: [],
   },
 
   getStyles: function() {
@@ -39,8 +39,8 @@ Module.register("MMM-MealViewer", {
     return `${date.day}'s ${meal}`;
   },
 
-  start: function() {
-    console.log(`Starting module: ${this.name}`);
+  start: async function() {
+    Log.info(`Starting module: ${this.name}`);
     this.loaded = false;
     this.results = [];
     this.getMenuData();
@@ -105,11 +105,6 @@ Module.register("MMM-MealViewer", {
         }
 
         for (let line of block.cafeteriaLineList.data) {
-          if (line.name.includes("Vegetarian Hot Entree")) {
-            // My kids aren't interested in the vegetarian line; removing it for neater display
-            continue;
-          }
-
           // Set up header row with the cafeteria line name
           //This isn't in every schol, but it might need to be moved for someone else. Not affecting my view -NG
           cafeteriaLineRow = document.createElement("tr");
@@ -117,7 +112,12 @@ Module.register("MMM-MealViewer", {
           cafeteriaLineName = document.createElement("td");
           cafeteriaLineName.colSpan = 2;
           cafeteriaLineName.className = "small";
-          cafeteriaLineName.innerHTML = line.name;
+          if(line.name === "") {
+            cafeteriaLineName.innerHTML = school.physicalLocation.name;
+          } else {
+            cafeteriaLineName.innerHTML = line.name;
+          }
+          
 
           cafeteriaLineRow.appendChild(cafeteriaLineName);
           wrapper.appendChild(cafeteriaLineRow);
@@ -130,14 +130,8 @@ Module.register("MMM-MealViewer", {
               return false;
             }
 
-            if (self.config.hideTypes.includes(item.item_Type)) {
-              return false;
-            }
-
-            for (let locationName of locationNames) {
-              if (item.menu_Name.includes(locationName)) {
-                return true;
-              }
+            if (self.config.showTypes.includes(item.item_Type)) {
+              return true;
             }
 
             return false;
